@@ -28,7 +28,7 @@ jobs:
           apiVersion: tekton.dev/v1beta1
           kind: PipelineRun
           metadata:
-            generateName: spark-deploy-
+            generateName: spark-deploy
           spec:
             pipelineRef:
               name: spark-deploy-pipeline
