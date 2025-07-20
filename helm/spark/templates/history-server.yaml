@@ -1,0 +1,25 @@
+{{- if .Values.spark.historyServer.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spark-history-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spark
+      role: history-server
+  template:
+    metadata:
+      labels:
+        app: spark
+        role: history-server
+    spec:
+      containers:
+        - name: spark-history-server
+          image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          args: {{ toJson .Values.spark.historyServer.extraArgs }}
+          env: {{ toYaml .Values.spark.historyServer.env | nindent 12 }}
+          ports:
+            - containerPort: {{ .Values.spark.historyServer.webPort }}
+{{- end }}

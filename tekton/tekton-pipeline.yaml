@@ -1,0 +1,46 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: spark-deploy-pipeline
+spec:
+  params:
+    - name: image
+    - name: chart
+      default: ./helm/spark
+    - name: release
+    - name: namespace
+  tasks:
+    - name: build-and-push
+      taskRef:
+        name: build-and-push-image
+      params:
+        - name: IMAGE
+          value: $(params.image)
+        - name: DOCKERFILE
+          value: ./Dockerfile
+        - name: CONTEXT
+          value: .
+
+    - name: trivy-scan
+      taskRef:
+        name: trivy-scan
+      runAfter: [build-and-push]
+      params: 
+        - name: IMAGE
+          value: $(params.image)
+
+    - name: helm-deploy
+      runAfter: [trivy-scan]
+      taskSpec:
+        params:
+          - name: image
+          - name: chart
+          - name: release
+          - name: namespace
+        steps:
+          - name: deploy
+            image: alpine/helm:3.11.2
+            script: |
+              helm upgrade --install $(params.release) $(params.chart) \
+                --namespace $(params.namespace) \
+                -f $(params.chart)/values.yaml

@@ -1,0 +1,41 @@
+image:
+  registry: <artifactory-url>
+  repository: spark-custom
+  tag: 3.5.1
+
+mode: standalone
+
+spark:
+  master:
+    webPort: 8080
+    port: 7077
+    extraArgs: ["/entrypoint.sh", "master"]
+
+  worker:
+    replicas: 2
+    webPort: 8081
+    extraArgs: ["/entrypoint.sh", "worker"]
+    env:
+      - name: SPARK_MASTER
+        value: spark://spark-release-spark-master:7077
+
+  historyServer:
+    enabled: true
+    webPort: 18080
+    extraArgs: ["/entrypoint.sh", "history-server"]
+    env:
+      - name: AWS_ACCESS_KEY_ID
+        valueFrom:
+          secretKeyRef:
+            name: aws-creds
+            key: accesskey
+      - name: AWS_SECRET_ACCESS_KEY
+        valueFrom:
+          secretKeyRef:
+            name: aws-creds
+            key: secretkey
+      - name: SPARK_HISTORY_OPTS
+        value: "-Dspark.hadoop.fs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem -Dspark.history.fs.logDirectory=s3a://spark-logs -Dspark.hadoop.fs.s3a.access.key=$(AWS_ACCESS_KEY_ID) -Dspark.hadoop.fs.s3a.secret.key=$(AWS_SECRET_ACCESS_KEY)"
+
+rbac:
+  create: true

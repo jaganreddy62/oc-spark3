@@ -1,0 +1,44 @@
+name: Deploy Spark to OpenShift
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install OpenShift CLI
+        run: |
+          curl -LO https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz
+          tar -xvf openshift-client-linux.tar.gz
+          sudo mv oc kubectl /usr/local/bin/
+
+      - name: Login to OpenShift
+        run: |
+          oc login --token=${{ secrets.OPENSHIFT_TOKEN }} --server=${{ secrets.OPENSHIFT_SERVER }}
+          oc project ${{ secrets.OPENSHIFT_NAMESPACE }}
+
+      - name: Trigger Tekton PipelineRun
+        run: |
+          cat <<EOF | oc apply -f -
+          apiVersion: tekton.dev/v1beta1
+          kind: PipelineRun
+          metadata:
+            generateName: spark-deploy-
+          spec:
+            pipelineRef:
+              name: spark-deploy-pipeline
+            params:
+              - name: image
+                value: https://hub.docker.com/repositories/jagan6/spark-custom:3.5.1
+              - name: chart
+                value: bitnami/spark
+              - name: release
+                value: spark-release
+              - name: namespace
+                value: spark-standalone
+          EOF

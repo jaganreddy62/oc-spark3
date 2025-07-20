@@ -1,0 +1,5 @@
+apiVersion: v2
+name: spark
+description: A Helm chart for Apache Spark standalone mode
+version: 0.1.0
+appVersion: 3.5.1

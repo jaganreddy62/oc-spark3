@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spark-master
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spark
+      role: master
+  template:
+    metadata:
+      labels:
+        app: spark
+        role: master
+    spec:
+      containers:
+        - name: spark-master
+          image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          args: {{ toJson .Values.spark.master.extraArgs }}
+          ports:
+            - containerPort: {{ .Values.spark.master.port }}
+            - containerPort: {{ .Values.spark.master.webPort }}

@@ -1,0 +1,12 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: trivy-scan
+spec:
+  params:
+    - name: IMAGE
+  steps:
+    - name: scan
+      image: aquasec/trivy:latest
+      script: |
+        trivy image --exit-code 1 --severity CRITICAL,HIGH $(params.IMAGE)

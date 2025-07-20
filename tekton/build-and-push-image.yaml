@@ -1,0 +1,24 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: build-and-push-image
+spec:
+  params:
+    - name: IMAGE
+    - name: DOCKERFILE
+      default: ./Dockerfile
+    - name: CONTEXT
+      default: .
+  steps:
+    - name: build-and-push
+      image: gcr.io/kaniko-project/executor:latest
+      env:
+        - name: DOCKER_CONFIG
+          value: /tekton/home/.docker/
+      script: |
+        /kaniko/executor \
+          --dockerfile=$(params.DOCKERFILE) \
+          --context=$(params.CONTEXT) \
+          --destination=$(params.IMAGE) \
+          --insecure \
+          --skip-tls-verify
