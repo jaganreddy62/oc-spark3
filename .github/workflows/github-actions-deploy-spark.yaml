@@ -24,7 +24,7 @@ jobs:
 
       - name: Trigger Tekton PipelineRun
         run: |
-          cat <<EOF | oc apply -f -
+          cat <<EOF | oc create -f -
           apiVersion: tekton.dev/v1beta1
           kind: PipelineRun
           metadata:
